@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CDTI — 你是哪种新能源司机</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fdf8f2;
+  --ink:#1a1208;
+  --muted:#a09880;
+  --faint:#ede8df;
+  --faint2:#e0d8cc;
+  --accent:#ff6b2b;
+  --accent2:#ffb347;
+  --pop:#7c3aed;
+  --poplight:#f3eeff;
+  --accentlight:#fff3ed;
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--ink);
+  min-height:100vh;display:flex;align-items:flex-start;justify-content:center;
+}
+.page{max-width:600px;width:100%;min-height:100vh;display:flex;flex-direction:column;position:relative}
+.blob{position:fixed;border-radius:50%;filter:blur(90px);z-index:0;pointer-events:none;opacity:0.28}
+.blob1{width:360px;height:360px;background:#ff6b2b;top:-100px;right:-100px}
+.blob2{width:300px;height:300px;background:#7c3aed;bottom:5%;left:-120px}
+.blob3{width:220px;height:220px;background:#ffb347;top:45%;right:-80px}
+.screen{display:none;position:relative;z-index:1}
+.screen.active{display:flex;flex-direction:column;flex:1}
+
+/* INTRO */
+.intro{padding:3rem 1.5rem 2.5rem;flex:1;display:flex;flex-direction:column}
+.eyebrow{font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);margin-bottom:2.5rem;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:24px;height:1px;background:var(--faint2)}
+.hero h1{font-size:clamp(80px,20vw,130px);font-weight:900;line-height:0.85;letter-spacing:-0.05em;color:var(--ink)}
+.hero h1 span{color:var(--accent)}
+.hero-sub{font-size:12px;color:var(--muted);margin-top:14px;letter-spacing:0.1em;text-transform:uppercase}
+.divider{height:1px;background:var(--faint2);margin:1.75rem 0}
+.intro-hook{font-size:21px;font-weight:800;line-height:1.45;color:var(--ink);margin-bottom:2rem}
+.intro-hook em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.btn-go{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:14px;width:100%;padding:18px;font-size:16px;font-weight:800;cursor:pointer;letter-spacing:0.03em;box-shadow:0 8px 32px rgba(255,107,43,0.35);transition:transform 0.15s,box-shadow 0.15s;margin-top:auto}
+.btn-go:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(255,107,43,0.45)}
+.disclaimer{font-size:11px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.7}
+
+/* QUIZ */
+.quiz-top{padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--faint2);background:rgba(253,248,242,0.92);backdrop-filter:blur(8px);position:sticky;top:0;z-index:10}
+.qnum{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)}
+.prog-wrap{display:flex;align-items:center;gap:8px}
+.prog-track{width:100px;height:3px;background:var(--faint2);border-radius:2px}
+.prog-fill{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width 0.4s ease;width:0%}
+.prog-pct{font-size:11px;color:var(--accent);font-weight:700;min-width:28px;text-align:right}
+.quiz-body{padding:2rem 1.5rem 1.5rem;flex:1;display:flex;flex-direction:column}
+.q-tag{display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);background:var(--accentlight);padding:4px 12px;border-radius:20px;margin-bottom:1.25rem;border:1px solid rgba(255,107,43,0.2)}
+.q-tag::before{content:'◆';font-size:7px}
+.q-text{font-size:20px;font-weight:800;line-height:1.45;color:var(--ink);margin-bottom:1.75rem;letter-spacing:-0.01em}
+.opts{display:flex;flex-direction:column;gap:10px;flex:1}
+.opt{padding:15px 18px;border:1.5px solid var(--faint2);border-radius:12px;background:#fff;color:#666;font-size:14px;line-height:1.7;text-align:left;cursor:pointer;width:100%;transition:all 0.18s;position:relative;overflow:hidden}
+.opt::after{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(180deg,var(--accent),var(--accent2));transition:width 0.18s}
+.opt:hover{border-color:var(--accent2);color:var(--ink);transform:translateX(3px)}
+.opt.selected{border-color:var(--accent);color:var(--ink);background:var(--accentlight);transform:translateX(4px)}
+.opt.selected::after{width:4px}
+.quiz-nav{padding:1.25rem 1.5rem;border-top:1px solid var(--faint2);display:flex;gap:10px}
+.btn-prev{padding:13px 18px;background:transparent;border:1.5px solid var(--faint2);color:var(--muted);font-size:13px;cursor:pointer;border-radius:10px;transition:all 0.15s;flex-shrink:0}
+.btn-prev:hover{border-color:var(--ink);color:var(--ink)}
+.btn-next{flex:1;padding:14px;background:var(--ink);color:var(--bg);border:none;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;transition:all 0.15s}
+.btn-next:not(:disabled):hover{background:var(--accent)}
+.btn-next:disabled{opacity:0.2;cursor:not-allowed}
+
+/* RESULT */
+.result-hero{padding:3rem 1.5rem 2rem;background:linear-gradient(160deg,var(--accentlight) 0%,var(--poplight) 100%);border-bottom:1px solid var(--faint2)}
+.rare-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:1.25rem}
+.rare-badge::before{content:'★★★';font-size:10px;color:var(--accent2)}
+.r-icon-box{width:80px;height:80px;border-radius:20px;background:#fff;border:1.5px solid var(--faint2);display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:1.25rem;box-shadow:0 4px 20px rgba(0,0,0,0.06)}
+.r-code{font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:6px}
+.r-name{font-size:clamp(34px,9vw,56px);font-weight:900;line-height:0.92;letter-spacing:-0.03em;color:var(--ink);margin-bottom:10px}
+.r-sub{font-size:13px;color:var(--muted);letter-spacing:0.04em}
+.result-body{padding:2rem 1.5rem 2.5rem}
+.r-desc{font-size:15px;color:#5a5040;line-height:1.95;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--faint2)}
+.r-desc strong{color:var(--ink);font-weight:800}
+.dims-title{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:1.25rem}
+.dims{display:flex;flex-direction:column;gap:18px;margin-bottom:2rem}
+.dim-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.dim-name{font-size:12px;color:var(--muted)}
+.dim-pct{font-size:13px;font-weight:800;color:var(--accent)}
+.dim-track{height:4px;background:var(--faint2);border-radius:2px}
+.dim-bar{height:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width 0.9s ease}
+.dim-ends{display:flex;justify-content:space-between;margin-top:5px}
+.dim-lo,.dim-hi{font-size:10px;color:var(--muted);opacity:0.6}
+.share-box{background:var(--faint);border-radius:14px;border:1px solid var(--faint2);padding:1.25rem;margin-bottom:1.5rem;text-align:center}
+.share-box p{font-size:13px;color:var(--muted);line-height:1.9}
+.share-box strong{color:var(--ink)}
+.btn-retry{width:100%;padding:15px;background:transparent;border:1.5px solid var(--faint2);border-radius:12px;color:var(--muted);font-size:13px;cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;transition:all 0.15s}
+.btn-retry:hover{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+<div class="page">
+
+<!-- INTRO -->
+<div class="screen active" id="s-intro">
+<div class="intro">
+  <div class="eyebrow">新能源驾驶人格测试 · 2025</div>
+  <div class="hero">
+    <h1>CD<span>TI</span></h1>
+    <div class="hero-sub">Car Driver Type Indicator</div>
+  </div>
+  <div class="divider"></div>
+  <div class="intro-hook">
+    MBTI 测你是什么人<br>
+    CDTI 测你上了车<em>是哪种显眼包</em>
+  </div>
+  <button class="btn-go" onclick="startTest()">开始测试，对号入座 →</button>
+  <div class="disclaimer">测试结果零科学依据 · 但你可能觉得比付费测评更懂你 · 仅供娱乐请勿用于吵架</div>
+</div>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="s-quiz">
+  <div class="quiz-top">
+    <div class="qnum" id="q-num">Q 01 / 10</div>
+    <div class="prog-wrap">
+      <div class="prog-track"><div class="prog-fill" id="prog"></div></div>
+      <div class="prog-pct" id="prog-pct">0%</div>
+    </div>
+  </div>
+  <div class="quiz-body">
+    <div class="q-tag">选最像你的那个</div>
+    <div class="q-text" id="q-text"></div>
+    <div class="opts" id="opts"></div>
+  </div>
+  <div class="quiz-nav">
+    <button class="btn-prev" id="btn-prev" onclick="prev()" style="display:none">← 返回</button>
+    <button class="btn-next" id="btn-next" onclick="next()" disabled>下一题 →</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="s-result">
+  <div class="result-hero">
+    <div class="rare-badge">全国最稀有人格（共8种，全部最稀有）</div>
+    <div class="r-icon-box" id="r-icon"></div>
+    <div class="r-code" id="r-code"></div>
+    <div class="r-name" id="r-name"></div>
+    <div class="r-sub" id="r-sub"></div>
+  </div>
+  <div class="result-body">
+    <div class="r-desc" id="r-desc"></div>
+    <div class="dims-title">维度评分 · 数据100%编造 请勿当真</div>
+    <div class="dims" id="r-dims"></div>
+    <div class="share-box">
+      <p>截图扔进车友群<br>
+      <strong>看看谁跟你是同款驾驶灵魂</strong><br>
+      <span style="font-size:11px;opacity:0.5">顺便测测你副驾，结果可能让你重新审视这段关系</span></p>
+    </div>
+    <button class="btn-retry" onclick="restart()">不服，再测一次</button>
+  </div>
+</div>
+
+</div>
+<script>
+const qs=[
+  {
+    text:"上车，第一个动作是什么？",
+    opts:[
+      {label:"系安全带、确认后视镜、看一眼胎压，仪式感这种东西不能省",score:{jingzhi:2,zishou:2,guihua:1}},
+      {label:"开智驾，直接进入「车开我」模式，驾驶位是我的移动沙发",score:{zhijia:3,zishou:0}},
+      {label:"瞄一眼电量表，心里默算今天够不够跑",score:{jiaolv:2,guihua:1}},
+      {label:"直接走，有什么好准备的，又不是头回开车",score:{suiji:2,dadan:2}}
+    ]
+  },
+  {
+    text:"绿灯还剩3秒，你的内心戏？",
+    opts:[
+      {label:"收油，等下一个，急个啥，路又不是跑完就没了",score:{wenrou:3,mojin:0}},
+      {label:"感觉85%能过，可以小赌一把",score:{wenrou:1,mojin:2}},
+      {label:"人还在算，脚已经自己踩下去了",score:{wenrou:0,mojin:3}},
+      {label:"后车也在冲，法不责众，跟上",score:{wenrou:0,mojin:2,suiji:1}}
+    ]
+  },
+  {
+    text:"旁边突然有辆车无预兆横切进你的道，应激反应是？",
+    opts:[
+      {label:"踩刹车让过，掀桌子这事对我来说不值当",score:{wenrou:3,mojin:0}},
+      {label:"让了，但嘴里蹦出俩字，只有自己听得到那种",score:{wenrou:2,mojin:1}},
+      {label:"按喇叭，礼貌提醒，这操作我觉得很合理",score:{mojin:2,wenrou:1}},
+      {label:"不让，今天没时间跟你讲道理",score:{mojin:3,wenrou:0}}
+    ]
+  },
+  {
+    text:"你跟智驾功能的关系，现在处于哪个阶段？",
+    opts:[
+      {label:"高速无脑开领航，我负责坐着，车负责开，分工明确",score:{zhijia:3,zishou:0}},
+      {label:"高速用用，市区自己来，命这个东西不能全托",score:{zhijia:2,zishou:1}},
+      {label:"偶尔开，总感觉哪里怪，最后还是自己接回来",score:{zhijia:1,zishou:2}},
+      {label:"从来不用，我比任何算法都更了解这条路",score:{zhijia:0,zishou:3}}
+    ]
+  },
+  {
+    text:"智驾「叮」一声脱手，这时候你在干嘛？",
+    opts:[
+      {label:"手一直搭方向盘上，0.1秒接管，教科书级别",score:{zhijia:0,zishou:3}},
+      {label:"接住了，但那0.5秒的空档让我后背发凉",score:{zhijia:1,zishou:2}},
+      {label:"接住了，下次要把手机放远点",score:{zhijia:2,zishou:1}},
+      {label:"我刚才在刷视频……什么？谁叮了？",score:{zhijia:3,zishou:0}}
+    ]
+  },
+  {
+    text:"进陌生地库，你的精神状态？",
+    opts:[
+      {label:"速度归零，360全景开满，内心OS：不要刮不要刮求你了",score:{xixin:3,dadan:0}},
+      {label:"减速，目测两侧间距，用脑子开这段",score:{xixin:2,dadan:1}},
+      {label:"正常速度，凭感觉，一般不会出事的",score:{xixin:0,dadan:2}},
+      {label:"弯多视野差更需要保持节奏，油门稳住",score:{xixin:0,dadan:3}}
+    ]
+  },
+  {
+    text:"后备箱现在打开是什么画风？",
+    opts:[
+      {label:"充电袋、急救包、折叠购物袋全部归位，随时迎接任何突发状况",score:{jingzhi:3,luan:0,guihua:1}},
+      {label:"有些东西放那挺久了，但我知道都有用",score:{jingzhi:1,luan:1}},
+      {label:"折叠桌椅、便携电源、气垫床——随时可以出发露营那种",score:{jingzhi:1,luan:1,guihua:1}},
+      {label:"我是认真不记得里面有什么了",score:{jingzhi:0,luan:3,suiji:1}}
+    ]
+  },
+  {
+    text:"高速跑着，前车突然急刹，你的反应是？",
+    opts:[
+      {label:"车距一直留着，刹下去无缝衔接，别人慌我不慌",score:{xixin:3,wenrou:2}},
+      {label:"有亿点近，但反应够快，惊险过关",score:{xixin:1,dadan:1}},
+      {label:"刹住了，后背湿了，这辈子开始认真留车距",score:{jiaolv:2,xixin:0}},
+      {label:"刹住了，顺手把跟车距离预警调大了一格",score:{xixin:2,zhijia:1}}
+    ]
+  },
+  {
+    text:"导航播报「前方拥堵，预计多16分钟」，然后呢？",
+    opts:[
+      {label:"秒切备选路线，我有Plan B，也有Plan C",score:{guihua:3,suiji:0}},
+      {label:"看一眼，16分钟还好，就这样走",score:{guihua:1,suiji:1}},
+      {label:"关导航自己走，这一片我比它熟",score:{guihua:0,suiji:2,dadan:1}},
+      {label:"堵就堵，人在车在，反正急不来",score:{guihua:0,suiji:3,wenrou:1}}
+    ]
+  },
+  {
+    text:"出远门，你和充电这件事咋相处的？",
+    opts:[
+      {label:"沿途充电桩全标好了，评分看过，高峰排队时长也查了，我没有信息盲区",score:{jiaolv:3,fangong:0,guihua:3}},
+      {label:"大概知道在哪，走到一半电量再决定，心里有底",score:{jiaolv:1,fangong:1,guihua:1}},
+      {label:"走到哪算哪，沿途肯定有桩，船到桥头自然直",score:{jiaolv:0,fangong:2,suiji:2}},
+      {label:"警告灯亮了才意识到：哦对，该充了",score:{jiaolv:0,fangong:3,suiji:3}}
+    ]
+  }
+];
+
+const types=[
+  {
+    code:"VOLT",icon:"⚡",
+    name:"电量焦虑症",
+    sub:"ANXIETY型 · 充电桩活地图",
+    desc:"<strong>你手机里存的充电桩比朋友联系人还多，这不是夸你。</strong>电量一破50%开始默算，破30%精神内耗启动，出发前必须冲到90%以上，理由永远是「万一堵车呢」。朋友喊你走，你说「还差6%，等下」。朋友已经到楼下了。你还在等那6%。旁边的人学会了不催你。",
+    cond:s=>s.jiaolv>=5
+  },
+  {
+    code:"EDGE",icon:"🪫",
+    name:"电量见底er",
+    sub:"EDGE型 · 续航极限运动员",
+    desc:"<strong>你不叫粗心，你叫艺高人胆大。</strong>警告灯？还能跑。8%？正好够到充电桩。你心里有一套自测过的极限模型，误差在2公里以内。同车的朋友每隔5分钟偷看一眼电量表，你从来不看——因为你说了「看了也急不来，到了再说」。到现在趴窝过一次，你觉得是人生体验。",
+    cond:s=>s.fangong>=5
+  },
+  {
+    code:"AUTO",icon:"🤖",
+    name:"智驾全托er",
+    sub:"AUTO型 · 方向盘吉祥物",
+    desc:"<strong>你买这台车，有一半是为了买智驾。</strong>高速开领航，市区开辅助，驾驶位上主要负责刷手机、接电话、偶尔吃点东西，系统脱手那一秒及时接管然后继续刷。你相信「人机协作是未来」，你的角色定位是监工，不是司机。到目前为止这个策略执行得相当顺滑。",
+    cond:s=>s.zhijia>=6
+  },
+  {
+    code:"MANU",icon:"🎯",
+    name:"纯手动天花板",
+    sub:"MANUAL型 · 人车合一信徒",
+    desc:"<strong>你和这台车之间有种不需要解释的默契。</strong>方向盘的回馈、刹车的力度、过弯时的重心——靠身体感知，不靠算法翻译。智驾不是不好，你就是不需要。你开了这么多年，换了电车，有一件事从没变过：这车是你在开，不是车在开你。这个边界你守得很清楚。",
+    cond:s=>s.zishou>=6
+  },
+  {
+    code:"RUSH",icon:"🏎️",
+    name:"黄灯冲冲er",
+    sub:"RUSH型 · 路口时机判断王",
+    desc:"<strong>你的决策比导航快，比后视镜快，有时候比自己大脑也快。</strong>绿灯3秒？够了。黄灯？加速信号。你不叫莽，你叫对窗口期有精准判断——只是判断时间太短，旁人看起来都像冲动。副驾已经掌握了一项技能：在路口提前抓好扶手，不问原因，不表态。",
+    cond:s=>s.mojin>=5
+  },
+  {
+    code:"ZEN",icon:"🧘",
+    name:"佛系老司机",
+    sub:"ZEN型 · 车里最稳的那个",
+    desc:"<strong>你是马路上一股罕见的稳定力量。</strong>有人加塞？让，不值得。堵了半小时？正好听完一期播客。后车狂按喇叭？你把音量调大了一格。你不是没想法，只是觉得路上那些事，到了目的地之后一件都不会记住——既然如此，现在就不必放在心上。副驾坐你车会不知不觉睡着。",
+    cond:s=>s.wenrou>=5&&s.mojin<=2
+  },
+  {
+    code:"PRO",icon:"✨",
+    name:"精致座舱派",
+    sub:"CLEAN型 · 移动展厅车主",
+    desc:"<strong>你的车厢是你审美的样板间，随时可以参观。</strong>内饰一尘不染，充电线按型号分类收纳，后视镜每次上车确认一遍，停车必须居中，歪了宁可重来。你洗车的频率高于大部分人洗头的频率。朋友上车前会下意识检查鞋底，你假装没注意到，但你注意到了，而且记住了。",
+    cond:s=>s.jingzhi>=5
+  },
+  {
+    code:"EASY",icon:"🚗",
+    name:"稳健通勤者",
+    sub:"STEADY型 · 最靠谱的那种",
+    desc:"<strong>你可能是全场最难被定义的人。</strong>不激进也不保守，充电心里有数，智驾用一点但不依赖，并线打灯，停车基本正。坐你车的人会不知不觉睡着，不是因为无聊，是因为放心。这不是普通的夸奖——能让人在高速上睡着，是驾驶者的最高荣誉。",
+    cond:()=>true
+  }
+];
+
+let cur=0,ans=[];
+function startTest(){show('s-quiz');render();}
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function render(){
+  const q=qs[cur];
+  document.getElementById('q-num').textContent=`Q ${String(cur+1).padStart(2,'0')} / 10`;
+  const pct=Math.round(cur/qs.length*100);
+  document.getElementById('prog').style.width=pct+'%';
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('q-text').textContent=q.text;
+  const c=document.getElementById('opts');c.innerHTML='';
+  q.opts.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='opt'+(ans[cur]===i?' selected':'');
+    b.textContent=o.label;b.onclick=()=>pick(i);c.appendChild(b);
+  });
+  document.getElementById('btn-prev').style.display=cur>0?'block':'none';
+  const nb=document.getElementById('btn-next');
+  nb.textContent=cur===qs.length-1?'揭晓结果 →':'下一题 →';
+  nb.disabled=ans[cur]===undefined;
+}
+function pick(i){
+  ans[cur]=i;
+  document.querySelectorAll('.opt').forEach((b,j)=>b.classList.toggle('selected',j===i));
+  document.getElementById('btn-next').disabled=false;
+}
+function next(){
+  if(ans[cur]===undefined)return;
+  if(cur<qs.length-1){cur++;render();}else showResult();
+}
+function prev(){if(cur>0){cur--;render();}}
+function showResult(){
+  const sc={jiaolv:0,fangong:0,guihua:0,suiji:0,zhijia:0,zishou:0,wenrou:0,mojin:0,jingzhi:0,luan:0,xixin:0,dadan:0};
+  ans.forEach((ai,qi)=>{
+    const s=qs[qi].opts[ai].score;
+    Object.keys(s).forEach(k=>{if(k in sc)sc[k]+=s[k];});
+  });
+  const t=types.find(t=>t.cond(sc));
+  document.getElementById('r-icon').textContent=t.icon;
+  document.getElementById('r-code').textContent=t.code;
+  document.getElementById('r-name').textContent=t.name;
+  document.getElementById('r-sub').textContent=t.sub;
+  document.getElementById('r-desc').innerHTML=t.desc;
+  const dims=[
+    {name:"电量规划指数",a:sc.jiaolv,b:sc.fangong,lo:"见底才充",hi:"提前锁桩"},
+    {name:"智驾依赖度",a:sc.zhijia,b:sc.zishou,lo:"手感至上",hi:"全程托管"},
+    {name:"路口决策速度",a:sc.mojin,b:sc.wenrou,lo:"摆烂等灯",hi:"黄灯即冲"},
+    {name:"出行计划性",a:sc.guihua,b:sc.suiji,lo:"走到哪算哪",hi:"方案备三套"}
+  ];
+  const dc=document.getElementById('r-dims');dc.innerHTML='';
+  dims.forEach(d=>{
+    const total=d.a+d.b||1;
+    const pct=Math.round(d.a/total*100);
+    dc.innerHTML+=`<div>
+      <div class="dim-row"><span class="dim-name">${d.name}</span><span class="dim-pct">${pct}%</span></div>
+      <div class="dim-track"><div class="dim-bar" style="width:${pct}%"></div></div>
+      <div class="dim-ends"><span class="dim-lo">${d.lo}</span><span class="dim-hi">${d.hi}</span></div>
+    </div>`;
+  });
+  show('s-result');
+}
+function restart(){cur=0;ans=[];show('s-quiz');render();}
+</script>
+</body>
+</html>
